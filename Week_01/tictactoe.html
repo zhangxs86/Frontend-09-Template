@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- <link href="http://cdn.staticfile.org/emoji/0.2.2/emoji.css" rel="stylesheet" type="text/css" /> -->
+</head>
+
+<style>
+    .cell {
+        width: 100px;
+        height: 100px;
+        background-color: green;
+        display: inline-block;
+        border: solid 1px white;
+        vertical-align: middle;
+
+        line-height: 100px;
+        font-size: 50px;
+        text-align: center;
+
+    }
+</style>
+
+<body>
+    <div id="board"></div>
+</body>
+<script>
+    // let pattern = [
+    //     [0, 2, 0],
+    //     [0, 1, 0],
+    //     [0, 0, 0]
+    // ]
+    let pattern = [
+        0, 1, 0,
+        0, 2, 0,
+        0, 0, 0
+    ]
+    let color = 1;
+
+
+    //  console.log(pattern)
+    function show() {
+        let board = document.getElementById("board")
+        //重画棋盘
+        board.innerHTML = "";
+        //两层循环创建棋盘的格子
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                let cell = document.createElement("div");
+                //为每个格子加入_i和_j属性，在点击事件时候可找到对应的位置
+                // cell._i = i;
+                // cell._j = j;
+                cell.attr = i * 3 + j
+                cell.classList.add("cell")
+                cell.innerText =
+                    pattern[i * 3 + j] == 2 ? "❌" :
+                        pattern[i * 3 + j] == 1 ? "⭕" : "";
+                // 为格子添加点击事件
+                // cell.addEventListener('click', () => move(i, j));
+                cell.addEventListener('click', () => {
+                    pattern[cell.attr] = color;
+                    //pattern[i][j] = color;//直接加入i,j是undefined，因为for已经循环完
+                    if (check(pattern, color)) {
+                        alert(color == 2 ? "❌ is winner!" : "⭕ is winner!")
+                    }
+                    color = 3 - color;
+
+                    show();
+                    if (willwin(pattern, color)) {
+                        alert(color == 2 ? "❌ will winner!" : "⭕ will winner!")
+                    }
+                });
+                board.appendChild(cell);
+            }
+            board.appendChild(document.createElement('br'))
+        }
+
+    }
+    // function move(i, j) {
+    //     pattern[i][j] = color;
+    //     color = 3 - color;
+    //     show();
+    // }
+    function check(pattern, color) {
+        //行判断
+        for (let i = 0; i < 3; i++) {
+            let win = true
+            for (let j = 0; j < 3; j++) {
+                if (pattern[i * 3 + j] !== color) {
+                    win = false
+                }
+            }
+            if (win)
+                return true;
+        }
+        //列判断
+        for (let i = 0; i < 3; i++) {
+            let win = true
+            for (let j = 0; j < 3; j++) {
+                if (pattern[i * 3 + j] !== color) {
+                    win = false
+                }
+            }
+            if (win)
+                return true;
+        }
+        {
+            let win = true
+            // 斜向1横纵坐标相等
+            for (let i = 0; i < 3; i++) {
+                if (pattern[i][i] !== color) {
+                    win = false
+                }
+            }
+            if (win)
+                return true;
+        }
+        // 斜向2横纵坐标相等
+        {
+            let win = true
+            for (let i = 0; i < 3; i++) {
+                if (pattern[i][2 - i] !== color) {
+                    win = false
+                }
+            }
+            if (win)
+                return true;
+        }
+
+    }
+    //复制数组
+    function clone(pattern) {
+        //return JSON.parse(JSON.stringify(pattern))
+        return Object.create(pattern);
+    }
+    function willwin(pattern, color) {
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (pattern[i][j])
+                    continue;
+                let tmp = clone(pattern)
+                tmp[i * 3 + j] = color
+                if (check(tmp, color)) {
+                    return [i, j];
+                }
+            }
+        }
+        return false
+    }
+
+    function bestchoice(pattern, color) {
+        let p;
+        if (p = willwin(pattern, color)) {
+            return {
+                point: p,
+                result: 1
+            }
+        }
+        let result = -2;
+        let point = null;
+        for (let i = 0; i < 3; i++) {
+            for (let j = 0; j < 3; j++) {
+                if (pattern[i * 3 + j])
+                    continue;
+                let tmp = clone(pattern);
+                tmp[i * 3 + j] = color;
+                let r = bestchoice(tmp, 3 - color).result;
+
+                if (-r > result) {
+                    result = -r;
+                    point = [i, j]
+                }
+
+            }
+        }
+        return {
+            point: point,
+            result: point ? result : 0
+        }
+    }
+
+
+
+    show();
+    console.log(bestchoice(pattern, color))
+
+</script>
+
+
+</html>
